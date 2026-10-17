@@ -1,0 +1,43 @@
+
+name: Build J.A.V.E.S. APK
+
+on:
+  push:
+    branches:
+      - main
+      - javes-0.4.1-corrigido
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Android
+        uses: android-actions/setup-android@v4
+
+      - name: Preparar Gradle
+        run: chmod +x gradlew
+
+      - name: Compilar APK
+        run: ./gradlew :app:assembleDebug
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JAVES-APK
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          

@@ -1,0 +1,97 @@
+J.A.V.E.S. 0.4.0
+================
+
+Versão incremental sobre 0.3.0. Interface holográfica, FabTune, comandos
+locais e provedores individuais preservados.
+
+Recursos implementados
+----------------------
+1. Ensemble de IA (Gemini + Groq + OpenRouter)
+   - CONFIG → "Ensemble de IA" (padrão ligado).
+   - Consulta em paralelo todos os provedores com chave configurada.
+   - Combina apenas respostas reais; falhas individuais são nomeadas.
+   - Com uma só chave, usa só esse provedor (sem fingir múltiplas fontes).
+   - Com backend/proxy configurado, o ensemble local é desativado e a
+     chamada vai só ao proxy (chaves ficam no servidor).
+
+2. Backend opcional (credenciais fora do APK)
+   - CONFIG → URL do proxy (ex.: https://seu-servidor.com).
+   - Contrato: POST {base}/v1/chat
+     Body JSON: { "model", "system", "messages": [ {"role","content"} ] }
+     Resposta: { "text": "..." }
+   - Sem proxy: chaves no aparelho (Android Keystore + AES-GCM), nunca no ZIP.
+
+3. Ativação por voz
+   - Frase principal: "JAVES, inicia" (modo 24h / serviço em primeiro plano).
+   - Também aceita só "Javes"/"Jarvis" (reconhecimento parcial).
+   - Resposta: "Javes iniciado. Pode falar."
+   - STT: SpeechRecognizer nativo, EXTRA_LANGUAGE = pt-BR.
+
+4. Localização
+   - Comandos: "onde estou", "minha localização", "localização atual", etc.
+   - Permissões ACCESS_COARSE/FINE_LOCATION pedidas em runtime ao usar o comando
+     (e opcionalmente junto do modo 24h).
+   - LocationHelper: last known location, sem gravar histórico; fala texto.
+   - Falhas: permissão negada, GPS/rede desligados, sem fix disponível.
+   - Estado visual LOCATION + painel holográfico.
+
+5. Iniciativa própria
+   - Ligar/desligar em CONFIG.
+   - Cumprimento com cooldown; ofertas periódicas com limite por sessão
+     (máx. 3) e frases rotativas.
+   - Nunca abre o microfone sozinho; não prefixa "Pronto" sem ação real.
+
+6. FabTune
+   - Media keys Android (play/pause/stop/next/prev/volume).
+   - Pacotes conhecidos; sem API privada do FabTune.
+   - Metadados de faixa: limitados sem Notification Listener.
+
+7. Interface holográfica
+   - IDLE, LISTENING, PROCESSING, SPEAKING, MUSIC, TIME, LOCATION, ERROR, OFFLINE.
+   - Núcleo, anéis, ondas e painéis preservados e ligados ao estado real.
+
+Configuração
+------------
+1. Android Studio → abrir pasta do projeto → sync Gradle.
+2. CONFIG → chave Gemini e/ou Groq e/ou OpenRouter → TESTAR.
+3. Opcional: Ensemble ligado; URL de backend se tiver proxy.
+4. Modo 24h: conceder microfone e desativar otimização de bateria do app.
+5. Localização: conceder quando o sistema pedir (comando "onde estou").
+
+Permissões
+----------
+RECORD_AUDIO, INTERNET, READ_CONTACTS, CALL_PHONE, SEND_SMS (intent),
+CAMERA (flash), SET_ALARM, FOREGROUND_SERVICE(+MICROPHONE), POST_NOTIFICATIONS,
+RECEIVE_BOOT_COMPLETED, QUERY_ALL_PACKAGES,
+ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION.
+
+Testes executados neste ambiente
+--------------------------------
+- Revisão estática Kotlin (balanceamento de chaves/parênteses).
+- Conferência de ensemble, BackendProxyProvider, LocationHelper, hotword regex.
+- Ausência de chaves/segredos no código empacotado.
+- Integração UI: switches ensemble/proxy, estado LOCATION, permissão sob demanda.
+
+Testes NÃO executados (sem Android SDK / emulador / aparelho)
+-------------------------------------------------------------
+- Compilação Gradle e geração de APK (ANDROID_HOME indisponível).
+- STT real em pt-BR e frase "JAVES, inicia" em hardware.
+- Chamadas reais ensemble Gemini/Groq/OpenRouter.
+- GPS real e FabTune com sessão de mídia ativa.
+- Testes instrumentados (projeto sem androidTest).
+
+APK: não entregue — não foi compilado neste ambiente.
+
+Compile localmente:
+  ./gradlew :app:assembleDebug
+  APK: app/build/outputs/apk/debug/app-debug.apk
+
+Limitações restantes
+--------------------
+- Ensemble aumenta latência e consumo de cota das APIs.
+- Backend deve ser hospedado por você; nenhum servidor vem no ZIP.
+- Qualidade do hotword depende do motor de voz do aparelho.
+- Título/artista do FabTune não lidos sem Notification Listener.
+- LOCATION usa last-known location (pode estar desatualizada).
+
+Não inclua chaves de API em repositórios públicos nem no APK distribuído.
