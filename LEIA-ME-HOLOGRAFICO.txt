@@ -1,0 +1,72 @@
+J.A.V.E.S. — Interface holográfica dinâmica
+==========================================
+
+Versão: 0.2.1-fabtune + UI holográfica
+
+Objetivo
+--------
+Interface futurista (fundo azul-marinho, anéis concêntricos, ciano/azul elétrico)
+que muda conforme a atividade REAL do assistente, sem perder funções existentes
+(voz, FabTune, IA, modo 24h, comandos de dispositivo).
+
+Estados visuais (JarvisState)
+-----------------------------
+IDLE        — aguardando (núcleo lento)
+LISTENING   — microfone ativo + ondas reativas ao nível real
+PROCESSING  — anéis mais rápidos
+SPEAKING    — ondas de fala
+MUSIC       — comando/controle FabTune (painel de mídia)
+TIME        — resposta de hora/data (painel de relógio real)
+LOCATION    — reservado (painel só com dados autorizados)
+ERROR       — falha
+OFFLINE     — rede/serviço externo indisponível
+
+Arquivos alterados / criados
+----------------------------
+- ui/JarvisState.kt          — estados estendidos
+- ui/theme/Color.kt          — paleta navy/cyan/glow
+- ui/theme/Theme.kt          — fundo navy
+- ui/JarvisCore.kt           — núcleo holográfico (anéis, ticks, arcos, halo)
+- ui/JarvisWaveform.kt       — ondas por estado + mic level
+- ui/HoloPanels.kt           — NOVO: painéis translúcidos + indicadores
+- ui/JarvisScreen.kt         — integração dos painéis e indicadores
+- ui/JarvisViewModel.kt      — modos MUSIC/TIME/OFFLINE ligados a ações reais
+- ui/SettingsDialog.kt       — teste visual dos novos estados
+
+O que NÃO mudou
+---------------
+Reconhecimento de voz, TTS, DeviceController, FabTune via media keys,
+provedores de IA, JavesService 24h, BootReceiver, permissões.
+
+Comportamento dos modos
+-----------------------
+- Comando de música → DeviceAction de mídia → estado MUSIC + painel
+- "Que horas são" / data → estado TIME + relógio atualizado a cada segundo
+- Falha de rede / mensagem de conexão → estado OFFLINE
+- Erro genérico → estado ERROR
+- Após alguns segundos em MUSIC/TIME/OFFLINE, volta a IDLE se não estiver
+  ouvindo/processando/falando
+
+Testes neste ambiente
+---------------------
+- Revisão estrutural dos arquivos Kotlin (chaves/parênteses balanceados)
+- Sem SDK Android completo aqui: APK NÃO foi compilado
+- Compile no Android Studio: Build → Build Bundle(s) / APK(s)
+
+Limitações
+----------
+1. Não há sincronização amostra-a-amostra do TTS com as barras de onda
+   (o motor de voz do sistema não expõe nível contínuo de forma portátil).
+2. LOCATION não ativa automaticamente sem fluxo de permissão + GPS
+   implementado; o painel existe para quando houver dados reais.
+3. Título/artista do FabTune continuam limitados (sem Notification Listener).
+4. Animações usam Canvas + frame clock leves; evite deixar a tela ligada
+   por horas em PROCESSING se preocupar com bateria.
+
+Como validar no aparelho
+------------------------
+1. Abra o app → núcleo em IDLE, indicadores REDE/MIC.
+2. CONFIG → Modo de teste (só visual) → alterne MUSIC, TIME, OFFLINE, ERROR.
+3. Diga "Javes, que horas são" → painel de tempo.
+4. Com FabTune tocando: "pausa a música" → modo MUSIC + painel.
+5. Desligue a rede e faça pergunta à IA → OFFLINE se a falha indicar conexão.
